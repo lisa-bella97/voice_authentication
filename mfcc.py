@@ -52,3 +52,56 @@ def get_mfcc_features_with_mean(wav_filename, num_coefficients=13, show_log=True
     return (mfcc_features_transposed, mfcc_features_transposed_mean), \
            (mfcc_deltas_transposed, mfcc_deltas_transposed_mean), \
            (mfcc_deltas_deltas_transposed, mfcc_deltas_deltas_transposed_mean)
+
+# Проверка средних значений коэффициентов
+# def check_mean_values():
+#     (liza1_mfcc, liza1_mfcc_mean), (liza1_deltas, liza1_deltas_mean), (
+#         liza1_deltas_deltas, liza1_deltas_deltas_mean) = get_mfcc_features_with_mean("samples/pausesDeleted_Liza_1.wav")
+#     (liza2_mfcc, liza2_mfcc_mean), (liza2_deltas, liza2_deltas_mean), (
+#         liza2_deltas_deltas, liza2_deltas_deltas_mean) = get_mfcc_features_with_mean("samples/pausesDeleted_Liza_2.wav")
+#     (test_mfcc, test_mfcc_mean), (test_deltas, test_deltas_mean), (
+#         test_deltas_deltas, test_deltas_deltas_mean) = get_mfcc_features_with_mean(
+#         "samples/ru_0075.wav")
+#
+#     plt.subplot(3, 1, 1)
+#     stem(liza1_mfcc_mean, linefmt='r', markerfmt='ro')
+#     stem(liza2_mfcc_mean, linefmt='g', markerfmt='go')
+#     stem(test_mfcc_mean, linefmt='b', markerfmt='bo')
+#     plt.grid(True)
+#     plt.subplot(3, 1, 2)
+#     stem(liza1_deltas_mean, linefmt='r', markerfmt='ro')
+#     stem(liza2_deltas_mean, linefmt='g', markerfmt='go')
+#     stem(test_deltas_mean, linefmt='b', markerfmt='bo')
+#     plt.grid(True)
+#     plt.subplot(3, 1, 3)
+#     stem(liza1_deltas_deltas_mean, linefmt='r', markerfmt='ro')
+#     stem(liza2_deltas_deltas_mean, linefmt='g', markerfmt='go')
+#     stem(test_deltas_deltas_mean, linefmt='b', markerfmt='bo')
+#     plt.grid(True)
+#     plt.show()
+
+
+# Проверка значений коэффициентов в определенных фреймах
+# def check_specific_values():
+#     num_coeff = 13
+#     liza1 = get_mfcc_features("samples/pausesDeleted_Liza_1.wav", num_coefficients=num_coeff)
+#     liza2 = get_mfcc_features("samples/pausesDeleted_Liza_2.wav")
+#     test = get_mfcc_features("samples/pausesDeleted_Liza_2.wav")
+#
+#     # Проверка значений коэффициентов в каких-либо фреймах
+#     plt.subplot(3, 1, 1)
+#     stem(liza1[0, :num_coeff - 1], linefmt='r', markerfmt='ro')
+#     stem(liza1[1, :num_coeff - 1], linefmt='b', markerfmt='bo')
+#     stem(liza1[2, :num_coeff - 1], linefmt='y', markerfmt='yo')
+#     plt.grid(True)
+#     plt.subplot(3, 1, 2)
+#     stem(liza2[0, :num_coeff - 1], linefmt='r', markerfmt='ro')
+#     stem(liza2[1, :num_coeff - 1], linefmt='b', markerfmt='bo')
+#     stem(liza2[2, :num_coeff - 1], linefmt='y', markerfmt='yo')
+#     plt.grid(True)
+#     plt.subplot(3, 1, 3)
+#     stem(test[0, :num_coeff - 1], linefmt='r', markerfmt='ro')
+#     stem(test[1, :num_coeff - 1], linefmt='b', markerfmt='bo')
+#     stem(test[2, :num_coeff - 1], linefmt='y', markerfmt='yo')
+#     plt.grid(True)
+#     plt.show()
