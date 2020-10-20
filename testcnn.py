@@ -7,7 +7,7 @@ from keras.utils.vis_utils import plot_model
 from sklearn.metrics import roc_curve, auc
 from tensorflow.python.keras.models import Model
 
-from loaddata import load_data_from_files
+from loaddata import load_data_from_files, load_speakers_data, save_data_to_files
 
 
 def get_first_model(input_shape):
@@ -170,8 +170,11 @@ if __name__ == '__main__':
     num_features = (num_mfcc - 1) * 3
 
     # (x_train, y_train), (x_test, y_test) = load_data()
-    (x_train, y_train), (x_test, y_test) = load_data_from_files('data/x_train.npy', 'data/y_train.npy',
-                                                                'data/x_test.npy', 'data/y_test.npy')
+    # (x_train, y_train), (x_test, y_test) = load_data_from_files('data/x_train.npy', 'data/y_train.npy',
+    #                                                             'data/x_test.npy', 'data/y_test.npy')
+
+    (x_train, y_train), (x_test, y_test) = load_speakers_data(num_registered=1, num_unregistered=10, num_train_files=2, num_test_files=1)
+    save_data_to_files(x_train, y_train, x_test, y_test)
 
     x_train = x_train.reshape(x_train.shape[0], num_frames, num_features, 1)
     x_test = x_test.reshape(x_test.shape[0], num_frames, num_features, 1)
