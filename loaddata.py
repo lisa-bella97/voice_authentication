@@ -60,8 +60,8 @@ def load_templates_from_files(files, out, num_frames=100, num_mfcc=13):
     return x, y
 
 
-def load_speakers_data(num_frames=100, num_mfcc=13, num_registered=5, num_unregistered=10, num_train_files=6,
-                       num_test_files=2):
+def load_speakers_data(num_frames=100, num_mfcc=13, num_registered=5, num_unregistered=10, num_train_files=3,
+                       num_test_files=1):
     speakers = sorted([join("speakers", d) for d in listdir("speakers")])
     train_files_registered, test_files_registered, train_files_unregistered, test_files_unregistered = [], [], [], []
 

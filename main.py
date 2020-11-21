@@ -1,6 +1,7 @@
 import sounddevice as sd
 import numpy as np
 from keras import models
+from scipy.io import wavfile
 
 from loaddata import load_speakers_data, save_data_to_files, load_templates, load_templates_with_out, \
     load_data_from_files
@@ -51,6 +52,7 @@ if __name__ == '__main__':
         train_model(x, y)
     elif answer == 'l':
         sample_rate, signal = record(5)
+        # (sample_rate, signal) = wavfile.read("ru_0051.wav")
         templates = load_templates(sample_rate, signal)
         templates = templates.reshape(templates.shape[0], num_frames, (num_mfcc - 1) * 3, 1)
         network_model = models.load_model('model')
