@@ -1,3 +1,4 @@
+import math
 from os import listdir
 from os.path import join
 
@@ -8,11 +9,11 @@ from mfcc import get_mfcc_features
 from preprocessing import remove_pauses, normalize_signal
 
 
-def load_templates(sample_rate, signal, num_frames=100, num_mfcc=13):
+def load_templates(sample_rate, signal, num_frames=100, num_mfcc=13, use_deltas=True):
     x = []
 
     samples_without_pauses = remove_pauses(sample_rate, normalize_signal(signal))
-    mfcc_features = get_mfcc_features(sample_rate, samples_without_pauses, num_mfcc)
+    mfcc_features = get_mfcc_features(sample_rate, samples_without_pauses, num_mfcc, use_deltas)
     templates = np.split(mfcc_features[:mfcc_features.shape[0] // num_frames * num_frames],
                          mfcc_features.shape[0] // num_frames)
 
@@ -22,12 +23,13 @@ def load_templates(sample_rate, signal, num_frames=100, num_mfcc=13):
     return np.array(x)
 
 
-def load_templates_with_out(sample_rate, signal, out, num_frames=100, num_mfcc=13):
+def load_templates_with_out(sample_rate, signal, out, num_frames=100, num_mfcc=13, use_deltas=True):
     x = []
     y = []
 
     samples_without_pauses = remove_pauses(sample_rate, normalize_signal(signal))
-    mfcc_features = get_mfcc_features(sample_rate, samples_without_pauses, num_mfcc)
+    mfcc_features = get_mfcc_features(sample_rate, samples_without_pauses, num_mfcc, use_deltas)
+
     templates = np.split(mfcc_features[:mfcc_features.shape[0] // num_frames * num_frames],
                          mfcc_features.shape[0] // num_frames)
 
@@ -38,63 +40,101 @@ def load_templates_with_out(sample_rate, signal, out, num_frames=100, num_mfcc=1
     return x, y
 
 
-# Загрузить шаблоны из файлов и присвоить им значение эталонного выхода out (0 или 1)
-def load_templates_from_files(files, out, num_frames=100, num_mfcc=13):
+# Загрузить шаблоны из файлов и присвоить им значение эталонного выхода out
+def load_templates_from_files_with_out(files, out, num_templates=math.inf, num_frames=100, num_mfcc=13,
+                                       use_deltas=True):
     x = []
     y = []
 
     for file in files:
         (sample_rate, signal) = wavfile.read(file)
-        samples_without_pauses = remove_pauses(sample_rate, normalize_signal(signal))
-        mfcc_features = get_mfcc_features(sample_rate, samples_without_pauses, num_mfcc)
-        templates = np.split(mfcc_features[:mfcc_features.shape[0] // num_frames * num_frames],
-                             mfcc_features.shape[0] // num_frames)
-        for template in templates:
-            x.append(template)
-            y.append(out)
-
-        x_file, y_file = load_templates_with_out(sample_rate, signal, out, num_frames, num_mfcc)
+        x_file, y_file = load_templates_with_out(sample_rate, signal, out, num_frames, num_mfcc, use_deltas)
         x.extend(x_file)
         y.extend(y_file)
+        if len(y) > num_templates:
+            break
 
-    return x, y
+    if num_templates == math.inf:
+        return x, y
+    else:
+        if len(y) < num_templates:
+            raise RuntimeError(
+                'num_templates ({}) is too big: use value less than {}\nDirectory: {}'.format(num_templates, len(y),
+                                                                                              files))
+        return x[:num_templates], y[:num_templates]
 
 
-def load_speakers_data(num_frames=100, num_mfcc=13, num_registered=5, num_unregistered=10, num_train_files=3,
-                       num_test_files=1):
-    speakers = sorted([join("speakers", d) for d in listdir("speakers")])
-    train_files_registered, test_files_registered, train_files_unregistered, test_files_unregistered = [], [], [], []
+def load_speakers_data(num_frames=100, num_mfcc=13, use_deltas=True, num_registered_male=5, num_registered_female=5,
+                       num_unregistered_male=5, num_unregistered_female=5, num_train_templates=6,
+                       num_test_templates=4):
+    male_speakers = sorted(
+        [join("speakers", "russian", "male", d) for d in listdir(join("speakers", "russian", "male"))])
+    female_speakers = sorted(
+        [join("speakers", "russian", "female", d) for d in listdir(join("speakers", "russian", "female"))])
+    x_train, y_train, x_test, y_test = [], [], [], []
 
-    for speaker in speakers[:num_registered]:
-        files_registered = sorted([join(speaker, "wav", f) for f in listdir(join(speaker, "wav"))])
-        train_files_registered.extend(files_registered[:num_train_files])
-        test_files_registered.extend(files_registered[num_train_files:num_train_files + num_test_files])
+    for speaker in male_speakers[:num_registered_male]:
+        files_registered = sorted([join(speaker, f) for f in listdir(speaker)])
+        x, y = load_templates_from_files_with_out(files=files_registered, out=1,
+                                                  num_templates=num_train_templates + num_test_templates,
+                                                  num_frames=num_frames, num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_train.extend(x[:num_train_templates])
+        y_train.extend(y[:num_train_templates])
+        x_test.extend(x[num_train_templates:num_train_templates + num_test_templates])
+        y_test.extend(y[num_train_templates:num_train_templates + num_test_templates])
 
-    for speaker in speakers[num_registered:num_registered + num_unregistered]:
-        files_unregistered = sorted([join(speaker, "wav", f) for f in listdir(join(speaker, "wav"))])
-        train_files_unregistered.extend(files_unregistered[:num_train_files])
-        test_files_unregistered.extend(files_unregistered[num_train_files:num_train_files + num_test_files])
+    for speaker in male_speakers[num_registered_male:num_registered_male + num_unregistered_male]:
+        files_unregistered = sorted([join(speaker, f) for f in listdir(speaker)])
+        x, y = load_templates_from_files_with_out(files=files_unregistered, out=0,
+                                                  num_templates=num_train_templates + num_test_templates,
+                                                  num_frames=num_frames, num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_train.extend(x[:num_train_templates])
+        y_train.extend(y[:num_train_templates])
+        x_test.extend(x[num_train_templates:num_train_templates + num_test_templates])
+        y_test.extend(y[num_train_templates:num_train_templates + num_test_templates])
 
-    x_train = []
-    y_train = []
-    x_test = []
-    y_test = []
+    for speaker in female_speakers[:num_registered_female]:
+        files_registered = sorted([join(speaker, f) for f in listdir(speaker)])
+        x, y = load_templates_from_files_with_out(files=files_registered, out=1,
+                                                  num_templates=num_train_templates + num_test_templates,
+                                                  num_frames=num_frames, num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_train.extend(x[:num_train_templates])
+        y_train.extend(y[:num_train_templates])
+        x_test.extend(x[num_train_templates:num_train_templates + num_test_templates])
+        y_test.extend(y[num_train_templates:num_train_templates + num_test_templates])
 
-    x, y = load_templates_from_files(train_files_registered, 1, num_frames, num_mfcc)
-    x_train.extend(x)
-    y_train.extend(y)
+    for speaker in female_speakers[num_registered_female:num_registered_female + num_unregistered_female]:
+        files_unregistered = sorted([join(speaker, f) for f in listdir(speaker)])
+        x, y = load_templates_from_files_with_out(files=files_unregistered, out=0,
+                                                  num_templates=num_train_templates + num_test_templates,
+                                                  num_frames=num_frames, num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_train.extend(x[:num_train_templates])
+        y_train.extend(y[:num_train_templates])
+        x_test.extend(x[num_train_templates:num_train_templates + num_test_templates])
+        y_test.extend(y[num_train_templates:num_train_templates + num_test_templates])
 
-    x, y = load_templates_from_files(train_files_unregistered, 0, num_frames, num_mfcc)
-    x_train.extend(x)
-    y_train.extend(y)
+    return (np.array(x_train), np.array(y_train)), (np.array(x_test), np.array(y_test))
 
-    x, y = load_templates_from_files(test_files_registered, 1, num_frames, num_mfcc)
-    x_test.extend(x)
-    y_test.extend(y)
 
-    x, y = load_templates_from_files(test_files_unregistered, 0, num_frames, num_mfcc)
-    x_test.extend(x)
-    y_test.extend(y)
+def load_templates_from_directories(directories, num_frames=100, num_mfcc=13, use_deltas=True, num_train_templates=10,
+                                    num_test_templates=2):
+    x_train, y_train, x_test, y_test = [], [], [], []
+
+    for i, speaker_directory in enumerate(directories):
+        speaker_files = sorted([join(speaker_directory, f) for f in listdir(speaker_directory)])
+        half_len = len(speaker_files) // 2
+
+        x, y = load_templates_from_files_with_out(files=speaker_files[:half_len], out=i,
+                                                  num_templates=num_train_templates, num_frames=num_frames,
+                                                  num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_train.extend(x[:num_train_templates])
+        y_train.extend(y[:num_train_templates])
+
+        x, y = load_templates_from_files_with_out(files=speaker_files[half_len:], out=i,
+                                                  num_templates=num_test_templates, num_frames=num_frames,
+                                                  num_mfcc=num_mfcc, use_deltas=use_deltas)
+        x_test.extend(x[:num_test_templates])
+        y_test.extend(y[:num_test_templates])
 
     return (np.array(x_train), np.array(y_train)), (np.array(x_test), np.array(y_test))
 

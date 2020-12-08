@@ -14,7 +14,7 @@ def get_frame_powers(sample_rate, samples):
     n = 0.02 / T  # Количество отсчетов в периоде стационарности
     s = log(n) // log(2)  # Степень двойки(log2(n) = log(n) / log(2))
     n_in_frame = int(2 ** s)  # Количество отсчетов в кадре
-    K = int(N / n_in_frame)  # Количество итераций Фурье-преобразования
+    K = N // n_in_frame  # Количество итераций Фурье-преобразования
 
     frame_powers = np.array([[0.0, 0]] * K)
 
@@ -80,9 +80,9 @@ def normalize_signal(signal):
 
 
 if __name__ == '__main__':
-    (rate, sig) = wavfile.read("speakers/13/wav/ru_0052.wav")
+    (rate, sig) = wavfile.read("speakers/russian/male/Peter/ru_0039.wav")
     normalized_sig = normalize_signal(sig)
-    # show_signal_and_power(rate, normalized_sig, get_frame_powers(rate, normalized_sig)[0])
+    show_signal_and_power(rate, normalized_sig, get_frame_powers(rate, normalized_sig)[0])
     signal_without_pauses = remove_pauses(rate, normalized_sig)
-    # show_signal_and_power(rate, signal_without_pauses, get_frame_powers(rate, signal_without_pauses)[0])
-    wavfile.write("speakers/13/wav/ru_0052_without_pauses.wav", rate, signal_without_pauses)
+    show_signal_and_power(rate, signal_without_pauses, get_frame_powers(rate, signal_without_pauses)[0])
+    wavfile.write("without_pauses.wav", rate, signal_without_pauses)
