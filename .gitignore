@@ -129,7 +129,8 @@ dmypy.json
 .pyre/
 
 .idea/
+authentication_model/
 bad_speakers/
 data/
-model/
+identification_model/
 speakers/

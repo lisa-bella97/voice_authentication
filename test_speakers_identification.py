@@ -7,7 +7,7 @@ import numpy
 from keras import models
 from scipy.io import wavfile
 
-from main_identification import train_identification_model
+from main import train_identification_model
 from loaddata import load_templates, load_templates_from_directories, save_data_to_files
 
 if __name__ == '__main__':
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     (x, y), (_, _) = load_templates_from_directories(directories=speakers, num_frames=num_frames, num_mfcc=num_mfcc,
                                                      use_deltas=use_deltas, num_train_templates=20,
                                                      num_test_templates=4)
-    save_data_to_files(x, y)
+    save_data_to_files(x, 'data/x_identification.npy', y, 'data/y_identification.npy')
     train_identification_model(x, y, num_speakers, num_features, num_frames, num_epochs)
     #
 

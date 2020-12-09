@@ -1,4 +1,5 @@
 import math
+import os
 from os import listdir
 from os.path import join
 
@@ -9,7 +10,7 @@ from mfcc import get_mfcc_features
 from preprocessing import remove_pauses, normalize_signal
 
 
-def load_templates(sample_rate, signal, num_frames=100, num_mfcc=13, use_deltas=True):
+def load_templates(sample_rate, signal, num_frames=25, num_mfcc=13, use_deltas=True):
     x = []
 
     samples_without_pauses = remove_pauses(sample_rate, normalize_signal(signal))
@@ -23,7 +24,7 @@ def load_templates(sample_rate, signal, num_frames=100, num_mfcc=13, use_deltas=
     return np.array(x)
 
 
-def load_templates_with_out(sample_rate, signal, out, num_frames=100, num_mfcc=13, use_deltas=True):
+def load_templates_with_out(sample_rate, signal, out, num_frames=25, num_mfcc=13, use_deltas=True):
     x = []
     y = []
 
@@ -41,7 +42,7 @@ def load_templates_with_out(sample_rate, signal, out, num_frames=100, num_mfcc=1
 
 
 # Загрузить шаблоны из файлов и присвоить им значение эталонного выхода out
-def load_templates_from_files_with_out(files, out, num_templates=math.inf, num_frames=100, num_mfcc=13,
+def load_templates_from_files_with_out(files, out, num_templates=math.inf, num_frames=25, num_mfcc=13,
                                        use_deltas=True):
     x = []
     y = []
@@ -64,9 +65,9 @@ def load_templates_from_files_with_out(files, out, num_templates=math.inf, num_f
         return x[:num_templates], y[:num_templates]
 
 
-def load_speakers_data(num_frames=100, num_mfcc=13, use_deltas=True, num_registered_male=5, num_registered_female=5,
-                       num_unregistered_male=5, num_unregistered_female=5, num_train_templates=6,
-                       num_test_templates=4):
+def load_speakers_data_authentication(num_frames=25, num_mfcc=13, use_deltas=True, num_registered_male=5,
+                                      num_registered_female=5, num_unregistered_male=5, num_unregistered_female=5,
+                                      num_train_templates=6, num_test_templates=4):
     male_speakers = sorted(
         [join("speakers", "russian", "male", d) for d in listdir(join("speakers", "russian", "male"))])
     female_speakers = sorted(
@@ -116,7 +117,22 @@ def load_speakers_data(num_frames=100, num_mfcc=13, use_deltas=True, num_registe
     return (np.array(x_train), np.array(y_train)), (np.array(x_test), np.array(y_test))
 
 
-def load_templates_from_directories(directories, num_frames=100, num_mfcc=13, use_deltas=True, num_train_templates=10,
+def load_speakers_data_identification(num_frames=25, num_mfcc=13, use_deltas=True, num_speakers=50, num_female=9,
+                                      num_train_templates=6, num_test_templates=4):
+    num_male = num_speakers - num_female
+
+    speakers = sorted([join("speakers", "russian", "male", d) for d in listdir(join("speakers", "russian", "male"))])[
+               :num_male]
+    speakers.extend(
+        sorted([join("speakers", "russian", "female", d) for d in listdir(join("speakers", "russian", "female"))])[
+        :num_female])
+
+    return load_templates_from_directories(directories=speakers, num_frames=num_frames, num_mfcc=num_mfcc,
+                                           use_deltas=use_deltas, num_train_templates=num_train_templates,
+                                           num_test_templates=num_test_templates)
+
+
+def load_templates_from_directories(directories, num_frames=25, num_mfcc=13, use_deltas=True, num_train_templates=10,
                                     num_test_templates=2):
     x_train, y_train, x_test, y_test = [], [], [], []
 
@@ -139,15 +155,25 @@ def load_templates_from_directories(directories, num_frames=100, num_mfcc=13, us
     return (np.array(x_train), np.array(y_train)), (np.array(x_test), np.array(y_test))
 
 
-def save_data_to_files(x_train, y_train, x_test=None, y_test=None):
-    np.save('data/x_train', x_train)
-    np.save('data/y_train', y_train)
+def save_data_to_files(x_train, x_train_path, y_train, y_train_path, x_test=None, x_test_path=None, y_test=None,
+                       y_test_path=None):
+    os.remove(x_train_path)
+    open(x_train_path, 'a').close()
+    np.save(x_train_path, x_train)
+    os.remove(y_train_path)
+    open(y_train_path, 'a').close()
+    np.save(y_train_path, y_train)
     if x_test is not None:
-        np.save('data/x_test', x_test)
+        os.remove(x_test_path)
+        open(x_test_path, 'a').close()
+        np.save(x_test_path, x_test)
     if y_test is not None:
-        np.save('data/y_test', y_test)
+        os.remove(y_test_path)
+        open(y_test_path, 'a').close()
+        np.save(y_test_path, y_test)
 
 
-def load_data_from_files(x_train, y_train, x_test=None, y_test=None):
-    return (np.load(x_train), np.load(y_train)), \
-           (np.load(x_test) if x_test is not None else None, np.load(y_test) if y_test is not None else None)
+def load_data_from_files(x_train_path, y_train_path, x_test_path=None, y_test_path=None):
+    return (np.load(x_train_path), np.load(y_train_path)), \
+           (np.load(x_test_path) if x_test_path is not None else None,
+            np.load(y_test_path) if y_test_path is not None else None)

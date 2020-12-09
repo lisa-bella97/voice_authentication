@@ -1,13 +1,10 @@
-from os import listdir
-from os.path import join
-
 import matplotlib.pyplot as plt
 import numpy
 from sklearn.metrics import classification_report
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
 import cnn_models
-from loaddata import save_data_to_files, load_templates_from_directories
+from loaddata import load_speakers_data_identification, save_data_to_files
 
 
 def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
@@ -17,20 +14,14 @@ def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
     num_features = (mfcc - 1) * 3 if deltas else mfcc - 1
     # Количество зарегистрированных дикторов
     num_speakers = 50
-    num_female = 9
-    num_male = num_speakers - num_female
-
-    speakers = sorted([join("speakers", "russian", "male", d) for d in listdir(join("speakers", "russian", "male"))])[
-               :num_male]
-    speakers.extend(
-        sorted([join("speakers", "russian", "female", d) for d in listdir(join("speakers", "russian", "female"))])[
-        :num_female])
 
     (x_train, y_train), (x_test, y_test) = \
-        load_templates_from_directories(directories=speakers, num_frames=frames, num_mfcc=mfcc, use_deltas=deltas,
-                                        num_train_templates=train_templates, num_test_templates=num_test_templates)
+        load_speakers_data_identification(num_frames=frames, num_mfcc=mfcc, use_deltas=deltas,
+                                          num_speakers=num_speakers, num_female=9, num_train_templates=train_templates,
+                                          num_test_templates=num_test_templates)
 
-    save_data_to_files(x_train, y_train, x_test, y_test)
+    save_data_to_files(x_train, 'data/x_train.npy', y_train, 'data/y_train.npy', x_test, 'data/x_test.npy', y_test,
+                       'data/y_test.npy')
 
     # (x_train, y_train), (x_test, y_test) = load_data_from_files('data/x_train.npy', 'data/y_train.npy',
     #                                                             'data/x_test.npy', 'data/y_test.npy')

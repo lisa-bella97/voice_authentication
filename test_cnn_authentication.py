@@ -3,7 +3,7 @@ import numpy
 from sklearn.metrics import roc_curve, auc, classification_report
 
 import cnn_models
-from loaddata import load_speakers_data, save_data_to_files, load_data_from_files
+from loaddata import load_speakers_data_authentication, save_data_to_files, load_data_from_files
 
 
 def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
@@ -21,12 +21,15 @@ def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
     num_features = (mfcc - 1) * 3 if deltas else mfcc - 1
 
     (x_train, y_train), (x_test, y_test) = \
-        load_speakers_data(num_frames=frames, num_mfcc=mfcc, use_deltas=deltas,
-                           num_registered_male=num_registered_male, num_registered_female=num_registered_female,
-                           num_unregistered_male=num_unregistered_male, num_unregistered_female=num_unregistered_female,
-                           num_train_templates=train_templates, num_test_templates=num_test_templates)
+        load_speakers_data_authentication(num_frames=frames, num_mfcc=mfcc, use_deltas=deltas,
+                                          num_registered_male=num_registered_male,
+                                          num_registered_female=num_registered_female,
+                                          num_unregistered_male=num_unregistered_male,
+                                          num_unregistered_female=num_unregistered_female,
+                                          num_train_templates=train_templates, num_test_templates=num_test_templates)
 
-    save_data_to_files(x_train, y_train, x_test, y_test)
+    save_data_to_files(x_train, 'data/x_train.npy', y_train, 'data/y_train.npy', x_test, 'data/x_test.npy', y_test,
+                       'data/y_test.npy')
 
     # (x_train, y_train), (x_test, y_test) = load_data_from_files('data/x_train.npy', 'data/y_train.npy',
     #                                                             'data/x_test.npy', 'data/y_test.npy')
