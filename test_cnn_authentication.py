@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     network_model, (x_train, y_train), (x_test, y_test) = get_model(num_mfcc, use_deltas, num_frames,
                                                                     num_train_templates)
-    # plot_model(network_model, show_shapes=True)
+    # plot_model(network_model)
 
     history = network_model.fit(x_train, y_train, epochs=num_epochs, validation_data=(x_test, y_test))
     print(history.history)

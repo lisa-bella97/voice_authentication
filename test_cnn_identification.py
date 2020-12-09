@@ -83,7 +83,7 @@ if __name__ == '__main__':
                                                                     num_train_templates)
     y_train_categorical = to_categorical(y_train)
     y_test_categorical = to_categorical(y_test)
-    # plot_model(network_model, show_shapes=True)
+    # plot_model(network_model)
     history = network_model.fit(x_train, y_train_categorical, epochs=num_epochs,
                                 validation_data=(x_test, y_test_categorical))
     print(history.history)
