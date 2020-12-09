@@ -3,7 +3,6 @@ from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, BatchNor
 from keras.models import Sequential
 from sklearn.metrics import classification_report
 from sklearn.model_selection import StratifiedKFold, cross_val_score, GridSearchCV
-from tensorflow.python.keras.regularizers import l2
 from tensorflow.python.keras.wrappers.scikit_learn import KerasClassifier
 
 
@@ -31,23 +30,30 @@ def get_first_model(input_shape, num_classes=None):
 
 def get_second_model(input_shape, num_classes=None):
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=3, activation='relu', padding='same', input_shape=input_shape))
-    model.add(Conv2D(32, kernel_size=3, activation='relu'))
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=input_shape))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(64, kernel_size=3, activation='relu', padding='same'))
-    model.add(Conv2D(64, kernel_size=3, activation='relu'))
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
 
-    model.add(Conv2D(128, kernel_size=3, activation='relu', padding='same'))
-    model.add(Conv2D(128, kernel_size=3, activation='relu'))
+    model.add(Conv2D(128, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(128, (3, 3), padding='same'))
+    model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
 
     model.add(Flatten())
-    model.add(Dense(512, activation='relu'))
+    model.add(Dense(512))
+    model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
     if num_classes is None:
@@ -185,67 +191,6 @@ def get_seventh_model(input_shape, num_classes=None):
 
     model.add(Flatten())
     model.add(Dense(512, activation='relu'))
-    model.add(Dropout(0.5))
-
-    if num_classes is None:
-        model.add(Dense(1, activation='sigmoid'))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    else:
-        model.add(Dense(num_classes, activation='softmax'))
-        model.compile(optimizer='adam', loss="categorical_crossentropy", metrics=["accuracy"])
-
-    return model
-
-
-def get_eighth_model(input_shape, num_classes=None):
-    model = Sequential()
-
-    model.add(Conv2D(16, kernel_size=3, activation='relu', padding='same', input_shape=input_shape))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
-    model.add(BatchNormalization())
-
-    model.add(Conv2D(32, kernel_size=3, activation='relu', padding='same', input_shape=input_shape))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
-    model.add(BatchNormalization())
-
-    model.add(Conv2D(64, kernel_size=3, activation='relu', padding='same'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
-    model.add(BatchNormalization())
-
-    model.add(Flatten())
-    model.add(Dropout(0.25))
-
-    if num_classes is None:
-        model.add(Dense(2, activation='relu', kernel_regularizer=l2(0.001)))
-        model.add(Dropout(0.25))
-        model.add(Dense(1, activation='sigmoid', kernel_regularizer=l2(0.001)))
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    else:
-        model.add(Dense(num_classes * 2, activation='relu', kernel_regularizer=l2(0.001)))
-        model.add(Dropout(0.25))
-        model.add(Dense(num_classes, activation='softmax', kernel_regularizer=l2(0.001)))
-        model.compile(optimizer='adam', loss="categorical_crossentropy", metrics=["accuracy"])
-
-    return model
-
-
-def get_ninth_model(input_shape, num_classes=None):
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(64, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-    model.add(Dense(64))
-    model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
     if num_classes is None:

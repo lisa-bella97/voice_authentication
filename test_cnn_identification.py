@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # Количество шаблонов для обучения (на одного диктора)
     num_train_templates = 48
 
-    find_best_template_params(num_epochs)
+    # find_best_template_params(num_epochs)
 
     network_model, (x_train, y_train), (x_test, y_test) = get_model(num_mfcc, use_deltas, num_frames,
                                                                     num_train_templates)

@@ -3,7 +3,7 @@ import numpy
 from sklearn.metrics import roc_curve, auc, classification_report
 
 import cnn_models
-from loaddata import load_speakers_data, save_data_to_files
+from loaddata import load_speakers_data, save_data_to_files, load_data_from_files
 
 
 def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
@@ -34,7 +34,7 @@ def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
     x_train = x_train.reshape(x_train.shape[0], frames, num_features, 1)
     x_test = x_test.reshape(x_test.shape[0], frames, num_features, 1)
 
-    return cnn_models.get_seventh_model(input_shape=(frames, num_features, 1)), (x_train, y_train), (x_test, y_test)
+    return cnn_models.get_second_model(input_shape=(frames, num_features, 1)), (x_train, y_train), (x_test, y_test)
 
 
 def find_best_template_params(epochs):
