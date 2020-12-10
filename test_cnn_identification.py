@@ -4,7 +4,7 @@ from sklearn.metrics import classification_report
 from tensorflow.python.keras.utils.np_utils import to_categorical
 
 import cnn_models
-from loaddata import load_speakers_data_identification, save_data_to_files
+from loaddata import load_speakers_data_identification, save_data_to_files, load_data_from_files
 
 
 def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
@@ -79,10 +79,11 @@ if __name__ == '__main__':
                                 validation_data=(x_test, y_test_categorical))
     print(history.history)
 
-    network_model.save('model')
+    network_model.save('identification_model')
 
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['accuracy'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_accuracy'])
+    plt.xlim([0, num_epochs])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
@@ -90,8 +91,9 @@ if __name__ == '__main__':
     plt.grid()
     plt.show()
 
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['loss'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_loss'])
+    plt.xlim([0, num_epochs])
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     plt.grid()
     plt.show()
 
-    # network_model = models.load_model('model')
+    # network_model = models.load_model('identification_model')
 
     score = network_model.evaluate(x_test, y_test_categorical, verbose=0)
     print('Потери при тестировании: %.2f' % score[0])

@@ -84,10 +84,11 @@ if __name__ == '__main__':
     history = network_model.fit(x_train, y_train, epochs=num_epochs, validation_data=(x_test, y_test))
     print(history.history)
 
-    network_model.save('model')
+    network_model.save('authentication_model')
 
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['accuracy'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_accuracy'])
+    plt.xlim([0, num_epochs])
     plt.title('Model accuracy')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
@@ -95,8 +96,9 @@ if __name__ == '__main__':
     plt.grid()
     plt.show()
 
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['loss'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_loss'])
+    plt.xlim([0, num_epochs])
     plt.title('Model loss')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
@@ -104,7 +106,7 @@ if __name__ == '__main__':
     plt.grid()
     plt.show()
 
-    # network_model = models.load_model('model')
+    # network_model = models.load_model('authentication_model')
 
     score = network_model.evaluate(x_test, y_test, verbose=0)
     print('Потери при тестировании: %.2f' % score[0])

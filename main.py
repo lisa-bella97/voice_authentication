@@ -30,7 +30,7 @@ def record(seconds):
 
 def train_authentication_model(x_train, y_train, features, frames=100, epochs=15):
     x_train = x_train.reshape(x_train.shape[0], frames, features, 1)
-    model = cnn_models.get_seventh_model(input_shape=(frames, features, 1))
+    model = cnn_models.get_second_model(input_shape=(frames, features, 1))
     history = model.fit(x_train, y_train, epochs=epochs)
     print(history.history)
     model.save('authentication_model')
