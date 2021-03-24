@@ -134,3 +134,5 @@ bad_speakers/
 data/
 identification_model/
 speakers/
+far_frr_authentication_model/
+test_authentication_model/
