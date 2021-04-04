@@ -157,18 +157,22 @@ def load_templates_from_directories(directories, num_frames=25, num_mfcc=13, use
 
 def save_data_to_files(x_train, x_train_path, y_train, y_train_path, x_test=None, x_test_path=None, y_test=None,
                        y_test_path=None):
-    os.remove(x_train_path)
+    if os.path.isfile(x_train_path):
+        os.remove(x_train_path)
     open(x_train_path, 'a').close()
     np.save(x_train_path, x_train)
-    os.remove(y_train_path)
+    if os.path.isfile(y_train_path):
+        os.remove(y_train_path)
     open(y_train_path, 'a').close()
     np.save(y_train_path, y_train)
     if x_test is not None:
-        os.remove(x_test_path)
+        if os.path.isfile(x_test_path):
+            os.remove(x_test_path)
         open(x_test_path, 'a').close()
         np.save(x_test_path, x_test)
     if y_test is not None:
-        os.remove(y_test_path)
+        if os.path.isfile(y_test_path):
+            os.remove(y_test_path)
         open(y_test_path, 'a').close()
         np.save(y_test_path, y_test)
 
