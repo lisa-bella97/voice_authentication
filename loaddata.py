@@ -8,6 +8,7 @@ from scipy.io import wavfile
 
 from mfcc import get_mfcc_features
 from preprocessing import remove_pauses, normalize_signal
+from utils import recreate_file
 
 
 def load_templates(sample_rate, signal, num_frames=25, num_mfcc=13, use_deltas=True):
@@ -157,23 +158,18 @@ def load_templates_from_directories(directories, num_frames=25, num_mfcc=13, use
 
 def save_data_to_files(x_train, x_train_path, y_train, y_train_path, x_test=None, x_test_path=None, y_test=None,
                        y_test_path=None):
-    if os.path.isfile(x_train_path):
-        os.remove(x_train_path)
-    open(x_train_path, 'a').close()
+    recreate_file(x_train_path)
     np.save(x_train_path, x_train)
-    if os.path.isfile(y_train_path):
-        os.remove(y_train_path)
-    open(y_train_path, 'a').close()
+
+    recreate_file(y_train_path)
     np.save(y_train_path, y_train)
+
     if x_test is not None:
-        if os.path.isfile(x_test_path):
-            os.remove(x_test_path)
-        open(x_test_path, 'a').close()
+        recreate_file(x_test_path)
         np.save(x_test_path, x_test)
+
     if y_test is not None:
-        if os.path.isfile(y_test_path):
-            os.remove(y_test_path)
-        open(y_test_path, 'a').close()
+        recreate_file(y_test_path)
         np.save(y_test_path, y_test)
 
 

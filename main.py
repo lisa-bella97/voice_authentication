@@ -78,11 +78,13 @@ def save_users(users_list):
 frames_authentication = 50
 frames_identification = 25
 # MFCC number
-num_mfcc = 31
+num_mfcc_authentication = 31
+num_mfcc_identification = 31
 # Will the first and second derivatives be calculated
 use_deltas = False
 # Number of coefficients in one frame
-num_features = (num_mfcc - 1) * 3 if use_deltas else num_mfcc - 1
+num_features_authentication = (num_mfcc_authentication - 1) * 3 if use_deltas else num_mfcc_authentication - 1
+num_features_identification = (num_mfcc_identification - 1) * 3 if use_deltas else num_mfcc_identification - 1
 # Number of learning epochs
 epochs_authentication = 40
 epochs_identification = 15
@@ -93,12 +95,12 @@ train_templates_identification = 48
 
 def prepare():
     (x_authentication, y_authentication), (_, _) = \
-        load_speakers_data_authentication(num_frames=frames_authentication, num_mfcc=num_mfcc,
+        load_speakers_data_authentication(num_frames=frames_authentication, num_mfcc=num_mfcc_authentication,
                                           use_deltas=use_deltas, num_registered_male=40, num_registered_female=5,
                                           num_unregistered_male=41, num_unregistered_female=4,
                                           num_train_templates=train_templates_authentication, num_test_templates=0)
     save_data_to_files(x_authentication, 'data/x_authentication.npy', y_authentication, 'data/y_authentication.npy')
-    train_authentication_model(x_authentication, y_authentication, num_features, frames_authentication,
+    train_authentication_model(x_authentication, y_authentication, num_features_authentication, frames_authentication,
                                epochs_authentication)
 
     # registered speakers
@@ -112,13 +114,13 @@ def prepare():
                             for d in listdir(join('speakers', 'russian', 'female'))])[:num_female])
 
     (x_identification, y_identification), (_, _) = \
-        load_templates_from_directories(directories=speakers, num_frames=frames_identification, num_mfcc=num_mfcc,
-                                        use_deltas=use_deltas, num_train_templates=train_templates_identification,
-                                        num_test_templates=0)
+        load_templates_from_directories(directories=speakers, num_frames=frames_identification,
+                                        num_mfcc=num_mfcc_identification, use_deltas=use_deltas,
+                                        num_train_templates=train_templates_identification, num_test_templates=0)
 
     save_data_to_files(x_identification, 'data/x_identification.npy', y_identification, 'data/y_identification.npy')
     save_users(speakers)
-    train_identification_model(x_identification, y_identification, num_speakers, num_features,
+    train_identification_model(x_identification, y_identification, num_speakers, num_features_identification,
                                frames_identification, epochs_identification)
 
 
@@ -136,7 +138,7 @@ def register_user(nickname):
     (x_authentication, y_authentication), (_, _) = \
         load_data_from_files('data/x_authentication.npy', 'data/y_authentication.npy')
     templates_authentication, answers_authentication = \
-        load_templates_with_out(sample_rate, signal, 1, frames_authentication, num_mfcc, use_deltas)
+        load_templates_with_out(sample_rate, signal, 1, frames_authentication, num_mfcc_authentication, use_deltas)
     if len(templates_authentication) < train_templates_authentication:
         raise RuntimeError('Too few templates in signal. Please make less pauses in speech')
 
@@ -145,19 +147,21 @@ def register_user(nickname):
     y_authentication = numpy.append(y_authentication, answers_authentication[:train_templates_authentication],
                                     axis=0)
     save_data_to_files(x_authentication, 'data/x_authentication.npy', y_authentication, 'data/y_authentication.npy')
-    train_authentication_model(x_authentication, y_authentication, num_features, frames_authentication,
+    train_authentication_model(x_authentication, y_authentication, num_features_authentication, frames_authentication,
                                epochs_authentication)
 
     (x_identification, y_identification), (_, _) = \
         load_data_from_files('data/x_identification.npy', 'data/y_identification.npy')
     templates_identification, answers_identification = \
-        load_templates_with_out(sample_rate, signal, user_index, frames_identification, num_mfcc, use_deltas)
+        load_templates_with_out(sample_rate, signal, user_index, frames_identification, num_mfcc_identification,
+                                use_deltas)
     x_identification = numpy.append(x_identification, templates_identification[:train_templates_identification],
                                     axis=0)
     y_identification = numpy.append(y_identification, answers_identification[:train_templates_identification],
                                     axis=0)
     save_data_to_files(x_identification, 'data/x_identification.npy', y_identification, 'data/y_identification.npy')
-    train_identification_model(x_identification, y_identification, len(users), num_features, frames_identification,
+    train_identification_model(x_identification, y_identification, len(users), num_features_identification,
+                               frames_identification,
                                epochs_identification)
 
     return True
@@ -165,8 +169,8 @@ def register_user(nickname):
 
 def login_user():
     sample_rate, signal = record(5)
-    templates = load_templates(sample_rate, signal, frames_authentication, num_mfcc, use_deltas)
-    templates = templates.reshape(templates.shape[0], frames_authentication, num_features, 1)
+    templates = load_templates(sample_rate, signal, frames_authentication, num_mfcc_authentication, use_deltas)
+    templates = templates.reshape(templates.shape[0], frames_authentication, num_features_authentication, 1)
     network_model = models.load_model('authentication_model')
 
     y_pred = network_model.predict(templates)
@@ -178,8 +182,8 @@ def login_user():
     if mean_y_pred >= 0.5:
         print('Success!')
         users = get_users()
-        templates = load_templates(sample_rate, signal, frames_identification, num_mfcc, use_deltas)
-        templates = templates.reshape(templates.shape[0], frames_identification, num_features, 1)
+        templates = load_templates(sample_rate, signal, frames_identification, num_mfcc_identification, use_deltas)
+        templates = templates.reshape(templates.shape[0], frames_identification, num_features_identification, 1)
         network_model = models.load_model('identification_model')
 
         predicted = numpy.argmax(network_model.predict(templates), axis=1)
@@ -199,11 +203,11 @@ def login_user():
 
 
 if __name__ == '__main__':
-    # When you first start the program, set this flag to True
-    is_first_launch = True
+    # To generate pre-trained models and data for them, set this flag to True
+    pretrained = False
 
     try:
-        if is_first_launch:
+        if pretrained:
             print('Preparing system...')
             prepare()
 
@@ -217,7 +221,7 @@ if __name__ == '__main__':
         elif answer == 'l':
             login_user()
         else:
-            print('Wrong command')
+            print('Wrong command: it should be \'r\' or \'l\'')
     except Exception as e:
         print(e)
 
