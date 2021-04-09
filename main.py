@@ -204,10 +204,10 @@ def login_user():
 
 if __name__ == '__main__':
     # To generate pre-trained models and data for them, set this flag to True
-    pretrained = False
+    pretrain = False
 
     try:
-        if pretrained:
+        if pretrain:
             print('Preparing system...')
             prepare()
 
