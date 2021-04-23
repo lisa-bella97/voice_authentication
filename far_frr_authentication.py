@@ -34,8 +34,8 @@ def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
     x_train = x_train.reshape(x_train.shape[0], frames, num_features, 1)
     x_test = x_test.reshape(x_test.shape[0], frames, num_features, 1)
 
-    # save_data_to_files(x_train, 'data/test_far_frr/x_train.npy', y_train, 'data/test_far_frr/y_train.npy', x_test,
-    #                    'data/test_far_frr/x_test.npy', y_test, 'data/test_far_frr/y_test.npy')
+    save_data_to_files(x_train, 'data/test_far_frr/x_train.npy', y_train, 'data/test_far_frr/y_train.npy', x_test,
+                       'data/test_far_frr/x_test.npy', y_test, 'data/test_far_frr/y_test.npy')
 
     # (x_train, y_train), (x_test, y_test) = \
     #     load_data_from_files('data/test_far_frr/x_train.npy', 'data/test_far_frr/y_train.npy',
@@ -47,7 +47,7 @@ def get_model(mfcc=13, deltas=True, frames=25, train_templates=48):
 def find_best_template_params(epochs):
     # train_frames = frames * num_train_templates; train_frames <= 1500 (из-за датасета); train : test = 60 : 40
     train_frames = [300, 900, 1500]
-    mfccs = [13, 21, 31]
+    mfccs = [13, 22, 31]
     frames = [25, 50, 100]
     deltas = [False, True]
 
@@ -63,7 +63,8 @@ def find_best_template_params(epochs):
                     print('mfcc = {0}, use_deltas = {1}, frames = {2}, train_frames = {3}'.format(mfcc, delta, frame,
                                                                                                   train_frame))
 
-                    k_fold_results, fars, frrs = cnn_models.k_fold_cross_val_score(x, y, lambda: model, epochs)
+                    k_fold_results, fars, frrs = \
+                        cnn_models.k_fold_cross_val_score_with_far_frr(x, y, lambda: model, epochs)
                     results.append((k_fold_results, fars, frrs, mfcc, delta, frame, train_frame))
 
     print("Results:")
@@ -114,25 +115,25 @@ if __name__ == '__main__':
 
     network_model.save('far_frr_authentication_model')
 
-    # plt.plot(list(range(1, num_epochs + 1)), history.history['accuracy'])
-    # plt.plot(list(range(1, num_epochs + 1)), history.history['val_accuracy'])
-    # plt.xlim([0, num_epochs])
-    # plt.title('Model accuracy')
-    # plt.ylabel('Accuracy')
-    # plt.xlabel('Epoch')
-    # plt.legend(['Train', 'Test'], loc='upper left')
-    # plt.grid()
-    # plt.show()
-    #
-    # plt.plot(list(range(1, num_epochs + 1)), history.history['loss'])
-    # plt.plot(list(range(1, num_epochs + 1)), history.history['val_loss'])
-    # plt.xlim([0, num_epochs])
-    # plt.title('Model loss')
-    # plt.ylabel('Loss')
-    # plt.xlabel('Epoch')
-    # plt.legend(['Train', 'Test'], loc='upper left')
-    # plt.grid()
-    # plt.show()
+    plt.plot(list(range(1, num_epochs + 1)), history.history['accuracy'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_accuracy'])
+    plt.xlim([0, num_epochs])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.grid()
+    plt.show()
+
+    plt.plot(list(range(1, num_epochs + 1)), history.history['loss'])
+    plt.plot(list(range(1, num_epochs + 1)), history.history['val_loss'])
+    plt.xlim([0, num_epochs])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.grid()
+    plt.show()
 
     # network_model = models.load_model('far_frr_authentication_model')
     # (x_train, y_train), (x_test, y_test) = \
