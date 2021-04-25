@@ -1,7 +1,7 @@
 import os
 
 # To disable logs from tensorflow
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import pickle
 from collections import Counter
@@ -49,6 +49,7 @@ def record(seconds):
 
 
 def train_authentication_model(x_train, y_train, features, frames=100, epochs=15):
+    print('Training authentication model...')
     x_train = x_train.reshape(x_train.shape[0], frames, features, 1)
     model = cnn_models.get_second_model(input_shape=(frames, features, 1))
     print(model.fit(x_train, y_train, epochs=epochs).history)
@@ -56,6 +57,7 @@ def train_authentication_model(x_train, y_train, features, frames=100, epochs=15
 
 
 def train_identification_model(x_train, y_train, num_classes, features, frames=100, epochs=15):
+    print('Training identification model...')
     x_train = x_train.reshape(x_train.shape[0], frames, features, 1)
     model = cnn_models.get_third_model(input_shape=(frames, features, 1), num_classes=num_classes)
     print(model.fit(x_train, to_categorical(y_train), epochs=epochs).history)
@@ -94,6 +96,7 @@ train_templates_identification = 48
 
 
 def prepare():
+    print('Loading data for authentication model...')
     (x_authentication, y_authentication), (_, _) = \
         load_speakers_data_authentication(num_frames=frames_authentication, num_mfcc=num_mfcc_authentication,
                                           use_deltas=use_deltas, num_registered_male=40, num_registered_female=5,
@@ -104,6 +107,7 @@ def prepare():
                                epochs_authentication)
 
     # registered speakers
+    print('Loading data for identification model...')
     num_speakers = 45
     num_female = 5
     num_male = num_speakers - num_female
@@ -167,30 +171,35 @@ def register_user(nickname):
     return True
 
 
-def login_user():
+def login_user(print_values=False):
     sample_rate, signal = record(5)
+
     templates = load_templates(sample_rate, signal, frames_authentication, num_mfcc_authentication, use_deltas)
     templates = templates.reshape(templates.shape[0], frames_authentication, num_features_authentication, 1)
     network_model = models.load_model('authentication_model')
 
     y_pred = network_model.predict(templates)
-    for i in range(len(templates)):
-        print('Predicted=%f' % (y_pred[i]))
     mean_y_pred = y_pred.mean().round(decimals=1)
-    print('Mean=%f' % mean_y_pred)
+
+    if print_values:
+        for i in range(len(templates)):
+            print('Predicted=%f' % (y_pred[i]))
+            print('Mean=%f' % mean_y_pred)
 
     if mean_y_pred >= 0.5:
-        print('Success!')
         users = get_users()
         templates = load_templates(sample_rate, signal, frames_identification, num_mfcc_identification, use_deltas)
         templates = templates.reshape(templates.shape[0], frames_identification, num_features_identification, 1)
         network_model = models.load_model('identification_model')
-
         predicted = numpy.argmax(network_model.predict(templates), axis=1)
-        for p in predicted:
-            print('Predicted id = %d, login = %s' % (p, users[p]))
+
+        if print_values:
+            for p in predicted:
+                print('Predicted id = %d, login = %s' % (p, users[p]))
+
         main_class = Counter(predicted).most_common()[0]
         border = len(predicted) // 2 + 1
+
         if main_class[1] < border:
             print('You cannot be identified. You are not registered')
             return False
@@ -205,25 +214,41 @@ def login_user():
 if __name__ == '__main__':
     # To generate pre-trained models and data for them, set this flag to True
     pretrain = False
+    answer = ''
 
-    try:
-        if pretrain:
-            print('Preparing system...')
-            prepare()
-
-        print('Type \'r\' if you want to register, \'l\' if you want to log in:')
+    while True:
+        print('Do you want to reset the system? Type \'y\' or \'n\'')
         answer = input()
 
-        if answer == 'r':
-            print('Create your login:')
-            login = input()
-            register_user(login)
-        elif answer == 'l':
-            login_user()
+        if answer == 'y':
+            pretrain = True
+            break
+        elif answer == 'n':
+            pretrain = False
+            break
         else:
-            print('Wrong command: it should be \'r\' or \'l\'')
-    except Exception as e:
-        print(e)
+            print('Wrong command: it should be \'y\' or \'n\'')
 
-    print('\nType enter or close the window to exit')
-    input()
+    while True:
+        try:
+            if pretrain:
+                print('Preparing the system...')
+                prepare()
+                pretrain = False
+
+            print('Type \'r\' if you want to register, \'l\' if you want to log in:')
+            answer = input()
+
+            if answer == 'r':
+                print('Create your login:')
+                login = input()
+                if register_user(login):
+                    print('You are successfully registered')
+                else:
+                    print('User with this login already exists')
+            elif answer == 'l':
+                login_user()
+            else:
+                print('Wrong command: it should be \'r\' or \'l\'')
+        except Exception as e:
+            print(e)
